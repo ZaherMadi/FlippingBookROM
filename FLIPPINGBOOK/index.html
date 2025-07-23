@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mon Flipbook Personnel</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body { 
+        margin: 0;
+        background-color: #333;
+        font-family: Arial, sans-serif;
+        overflow: hidden;
+      }
+      .flipbook {
+        width: 100vw;
+        height: 100vh;
+      }
+      
+      /* Icône de zoom personnalisée */
+      .flipbook .viewport {
+        cursor: url("https://www.sainte-rita.net/components/com_html5flippingbook/assets/images/zoom-ico.png") 16 16, zoom-in !important;
+      }
+      .flipbook .viewport.zoom {
+        cursor: url("https://www.sainte-rita.net/components/com_html5flippingbook/assets/images/zoom-ico.png") 16 16, zoom-out !important;
+      }
+      
+      /* Curseur fallback si l'icône ne charge pas */
+      .flipbook .viewport:hover {
+        cursor: url("https://www.sainte-rita.net/components/com_html5flippingbook/assets/images/zoom-ico.png") 16 16, zoom-in !important;
+      }
+      
+      /* Indicateur de page en haut */
+      .page-indicator {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        background: rgba(0,0,0,0.8);
+        padding: 8px 16px;
+        border-radius: 20px;
+        z-index: 1000;
+        font-size: 14px;
+        font-weight: bold;
+      }
+      
+      /* Instructions en bas */
+      .instructions {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #ccc;
+        background: rgba(0,0,0,0.6);
+        padding: 8px 16px;
+        border-radius: 15px;
+        z-index: 1000;
+        font-size: 12px;
+        text-align: center;
+      }
+      
+      /* Loading */
+      .loading {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 18px;
+        z-index: 2000;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Loading -->
+      <div class="loading" v-if="!flipbookReady">
+        Chargement du flipbook...
+      </div>
+      
+      <!-- Indicateur de page -->
+      <div class="page-indicator" v-if="flipbookData && flipbookReady">
+        Page {{ flipbookData.page }} / {{ flipbookData.numPages }}
+      </div>
+      
+      <!-- Instructions -->
+      <div class="instructions" v-if="flipbookReady">
+        Extraits Revue Sainte Rita
+      </div>
+      
+      <flipbook 
+        ref="flipbook"
+        class="flipbook" 
+        :pages="pages" 
+        :start-page="pageNum"
+        :click-to-zoom="true"
+        @flip-left-end="onFlipLeftEnd"
+        @flip-right-end="onFlipRightEnd"
+        v-slot="flipbookData"
+      />
+    </div>
+    
+    <script src="https://unpkg.com/vue@3"></script>
+    <script src="https://unpkg.com/flipbook-vue@latest/dist/flipbook.min.js"></script>
+    <script>
+      const { createApp } = Vue
+      const app = createApp({
+        data() {
+          return {
+            flipbookReady: false,
+            flipbookData: null,
+            pageNum: null,
+            
+            // 🔥🔥🔥 PAGES AUTOMATIQUES 🔥🔥🔥
+            // Le système détecte automatiquement vos images
+            pages: [null] // Sera rempli automatiquement
+          }
+        },
+        methods: {
+          // Détection automatique des images
+          async detectPages() {
+            const pages = [null] // Page de couverture vide
+            let pageNumber = 1
+            
+            while (pageNumber <= 100) { // Limite à 100 pages max
+              const imagePath = `images/page${pageNumber}.jpg`
+              
+              try {
+                // Vérifier si l'image existe
+                const response = await fetch(imagePath, { method: 'HEAD' })
+                if (response.ok) {
+                  pages.push(imagePath)
+                  pageNumber++
+                } else {
+                  break // Stop si l'image n'existe pas
+                }
+              } catch (error) {
+                break // Stop en cas d'erreur
+              }
+            }
+            
+            this.pages = pages
+            console.log(`📖 ${pages.length - 1} pages détectées automatiquement`)
+          },
+
+          onFlipLeftEnd(page) {
+            console.log('Page précédente:', page)
+            window.location.hash = '#page/' + page
+            this.updateFlipbookData()
+          },
+          
+          onFlipRightEnd(page) {
+            console.log('Page suivante:', page) 
+            window.location.hash = '#page/' + page
+            this.updateFlipbookData()
+          },
+          
+          updateFlipbookData() {
+            this.$nextTick(() => {
+              if (this.$refs.flipbook) {
+                this.$forceUpdate()
+              }
+            })
+          },
+          
+          setPageFromHash() {
+            const hash = window.location.hash
+            const match = hash.match(/#page\/(\d+)/)
+            if (match) {
+              const n = parseInt(match[1], 10)
+              if (isFinite(n)) {
+                this.pageNum = n
+                console.log('Navigation vers page:', n)
+              }
+            }
+          }
+        },
+        
+        mounted() {
+          // Détecter automatiquement les pages disponibles
+          this.detectPages().then(() => {
+            // Marquer comme prêt après détection
+            this.flipbookReady = true
+          })
+          
+          window.addEventListener('hashchange', this.setPageFromHash)
+          this.setPageFromHash()
+          
+          window.addEventListener('keydown', (e) => {
+            const flipbook = this.$refs.flipbook
+            if (!flipbook || !this.flipbookReady) return
+            
+            let handled = false
+            
+            if (e.keyCode === 37 || e.key === 'ArrowLeft' || e.key === 'q' || e.key === 'Q') {
+              if (flipbook.canFlipLeft) {
+                flipbook.flipLeft()
+                handled = true
+              }
+            }
+            else if (e.keyCode === 39 || e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+              if (flipbook.canFlipRight) {
+                flipbook.flipRight()
+                handled = true
+              }
+            }
+            else if (e.key === ' ' || e.key === 'Enter') {
+              if (flipbook.canZoomIn) {
+                flipbook.zoomIn()
+              } else if (flipbook.canZoomOut) {
+                flipbook.zoomOut()
+              }
+              handled = true
+            }
+            else if (e.key === 'Escape') {
+              if (flipbook.canZoomOut) {
+                flipbook.zoomOut()
+                handled = true
+              }
+            }
+            
+            if (handled) {
+              e.preventDefault()
+              e.stopPropagation()
+            }
+          })
+          
+          console.log('Flipbook initialisé avec', this.pages.length, 'pages')
+        }
+      })
+      
+      app.component('Flipbook', Flipbook)
+      app.mount('#app')
+    </script>
+  </body>
+</html>

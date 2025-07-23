@@ -75,12 +75,12 @@ export default {
     onFlipLeftStart(page) { console.log('flip-left-start', page) },
     onFlipLeftEnd(page) {
       console.log('flip-left-end', page)
-      window.location.hash = '#' + page
+      window.location.hash = '#page/' + page
     },
     onFlipRightStart(page) { console.log('flip-right-start', page) },
     onFlipRightEnd(page) {
       console.log('flip-right-end', page)
-      window.location.hash = '#' + page
+      window.location.hash = '#page/' + page
     },
     onZoomStart(zoom) {
       console.log('zoom-start', zoom)
@@ -89,8 +89,12 @@ export default {
       console.log('zoom-end', zoom)
     },
     setPageFromHash() {
-      const n = parseInt(window.location.hash.slice(1), 10)
-      if (isFinite(n)) this.pageNum = n
+      const hash = window.location.hash
+      const match = hash.match(/#page\/(\d+)/)
+      if (match) {
+        const n = parseInt(match[1], 10)
+        if (isFinite(n)) this.pageNum = n
+      }
     },
   },
   mounted() {
