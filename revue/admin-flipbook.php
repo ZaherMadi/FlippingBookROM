@@ -564,8 +564,8 @@ $flipbooks = $generator->listFlipbooks();
             
             <h4 style="color: #2c3e50;">Intégration Joomla :</h4>
             <ul style="line-height: 1.8;">
-                <li><strong>Article Joomla :</strong> <code>&lt;a href="nom-flipbook/" target="_blank"&gt;Voir la revue&lt;/a&gt;</code></li>
-                <li><strong>Iframe :</strong> <code>&lt;iframe src="nom-flipbook/" width="100%" height="600px"&gt;&lt;/iframe&gt;</code></li>
+                <li><strong>Article Joomla :</strong> <code>&lt;a href="/revue/nom-flipbook/" target="_blank"&gt;Voir la revue&lt;/a&gt;</code></li>
+                <li><strong>Iframe :</strong> <code>&lt;iframe src="/revue/nom-flipbook/" width="100%" height="600px"&gt;&lt;/iframe&gt;</code></li>
                 <li><strong>URL directe :</strong> <code>votre-site.com/revue/nom-flipbook/</code></li>
             </ul>
         </div>
