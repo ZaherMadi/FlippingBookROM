@@ -2,7 +2,7 @@
 // flipbook-template-simple.php - Template sans auto-détection
 function generateSimpleFlipbook($moisAnnee, $titre = null, $nbPages = 10) {
     if (!$titre) {
-        $titre = "Extraits Revue Sainte Rita - " . ucfirst(str_replace('-', ' ', $moisAnnee));
+        $titre = "Revue  - " . ucfirst(str_replace('-', ' ', $moisAnnee));
     }
     
     // Générer la liste des pages statiquement
@@ -22,8 +22,6 @@ function generateSimpleFlipbook($moisAnnee, $titre = null, $nbPages = 10) {
     <style>
         body { margin: 0; background-color: #333; font-family: Arial, sans-serif; overflow: hidden; }
         .flipbook { width: 100vw; height: 100vh; }
-        .flipbook .viewport { cursor: url("https://www.sainte-rita.net/components/com_html5flippingbook/assets/images/zoom-ico.png") 16 16, zoom-in !important; }
-        .flipbook .viewport.zoom { cursor: url("https://www.sainte-rita.net/components/com_html5flippingbook/assets/images/zoom-ico.png") 16 16, zoom-out !important; }
         .page-indicator { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); color: white; background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 20px; z-index: 1000; font-size: 14px; font-weight: bold; }
         .instructions { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); color: #ccc; background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 15px; z-index: 1000; font-size: 12px; text-align: center; }
         .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 18px; z-index: 2000; }
