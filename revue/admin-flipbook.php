@@ -91,7 +91,7 @@ function optimizeImage($imagePath) {
 
 function regenerateFlipbookWithImageCount($flipbookName, $imageCount) {
     $dossier = "./{$flipbookName}";
-    $titre = "Extraits Revue Sainte Rita - " . ucfirst(str_replace('-', ' ', $flipbookName));
+    $titre = "Revue - " . ucfirst(str_replace('-', ' ', $flipbookName));
     
     $html = generateSimpleFlipbook($flipbookName, $titre, $imageCount);
     file_put_contents($dossier . '/index.html', $html);
@@ -111,7 +111,7 @@ $flipbooks = $generator->listFlipbooks();
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Gestionnaire FlippingBooks - Sainte Rita</title>
+    <title>Gestionnaire FlippingBooks</title>
     <meta charset="UTF-8">
     <style>
         * { box-sizing: border-box; }
