@@ -38,18 +38,59 @@ class FlipbookGenerator {
         foreach ($dirs as $dir) {
             $name = basename($dir);
             if (file_exists($dir . '/index.html')) {
+                // Extraire la date pour le tri
+                $sortDate = $this->extractSortDate($name);
+                
                 $flipbooks[] = [
                     'name' => $name,
                     'url' => $name . '/',
                     'created' => date('Y-m-d H:i:s', filemtime($dir . '/index.html')),
-                    'images_count' => count(glob($dir . '/images/*.{jpg,jpeg,png}', GLOB_BRACE))
+                    'images_count' => count(glob($dir . '/images/*.{jpg,jpeg,png}', GLOB_BRACE)),
+                    'sort_date' => $sortDate
                 ];
             }
         }
+        
+        // Trier par date décroissante (plus récent en premier)
+        usort($flipbooks, function($a, $b) {
+            return $b['sort_date'] <=> $a['sort_date'];
+        });
+        
         return $flipbooks;
     }
+    
+    private function extractSortDate($name) {
+        // Extraire année et mois du nom du flipbook pour le tri
+        // Formats supportés : mois-YYYY, juillet-aout-YYYY, etc.
+        
+        $monthMap = [
+            'janvier' => '01', 'fevrier' => '02', 'mars' => '03', 'avril' => '04',
+            'mai' => '05', 'juin' => '06', 'juillet' => '07', 'aout' => '08',
+            'septembre' => '09', 'octobre' => '10', 'novembre' => '11', 'decembre' => '12'
+        ];
+        
+        // Cas 1: juillet-aout-YYYY
+        if (preg_match('/^juillet-aout-(\d{4})$/', $name, $matches)) {
+            return $matches[1] . '-07'; // Utilise juillet pour le tri
+        }
+        
+        // Cas 2: mois-YYYY
+        if (preg_match('/^([a-z]+)-(\d{4})$/', $name, $matches)) {
+            $monthName = $matches[1];
+            $year = $matches[2];
+            $monthNum = $monthMap[$monthName] ?? '00';
+            return $year . '-' . $monthNum;
+        }
+        
+        // Cas 3: YYYY-MM (format numérique)
+        if (preg_match('/^(\d{4})-(\d{2})$/', $name, $matches)) {
+            return $matches[1] . '-' . $matches[2];
+        }
+        
+        // Fallback: utiliser la date de création du fichier
+        return date('Y-m', filemtime($this->baseDir . $name . '/index.html'));
+    }
 }
-
 // Usage en ligne de commande
 if (php_sapi_name() === 'cli' && $argc >= 2) {
     $generator = new FlipbookGenerator();

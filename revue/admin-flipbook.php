@@ -10,10 +10,7 @@ if ($_POST && isset($_POST['action'])) {
     try {
         if ($_POST['action'] === 'create') {
             $result = $generator->createFlipbook($_POST['mois_annee'], $_POST['titre']);
-            $message = "F            .rom-logo-header { width: 35px !important; height: 35px !important; }
-            .header-title-row { flex-direction: column; gap: 10px; }
-            .header h1 { font-size: 2em; }
-        }ppingBook '{$result['dossier']}' créé avec succès !";
+            $message = "FlippingBook '{$result['dossier']}' créé avec succès !";
         } elseif ($_POST['action'] === 'upload') {
             $flipbookName = $_POST['flipbook_name'];
             $uploadResult = handleImageUpload($flipbookName);
@@ -27,6 +24,7 @@ if ($_POST && isset($_POST['action'])) {
         $error = $e->getMessage();
     }
 }
+
 
 function handleImageUpload($flipbookName) {
     $targetDir = "./{$flipbookName}/images/";
@@ -91,7 +89,7 @@ function optimizeImage($imagePath) {
 
 function regenerateFlipbookWithImageCount($flipbookName, $imageCount) {
     $dossier = "./{$flipbookName}";
-    $titre = "Revue - " . ucfirst(str_replace('-', ' ', $flipbookName));
+    $titre =  ucfirst(str_replace('-', ' ', $flipbookName));
     
     $html = generateSimpleFlipbook($flipbookName, $titre, $imageCount);
     file_put_contents($dossier . '/index.html', $html);
@@ -106,8 +104,16 @@ function countImages($flipbookName) {
     return count($images);
 }
 
-$flipbooks = $generator->listFlipbooks();
+// Pagination
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$perPage = 4;
+$allFlipbooks = $generator->listFlipbooks();
+$totalFlipbooks = count($allFlipbooks);
+$totalPages = ceil($totalFlipbooks / $perPage);
+$offset = ($page - 1) * $perPage;
+$flipbooks = array_slice($allFlipbooks, $offset, $perPage);
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -458,6 +464,66 @@ $flipbooks = $generator->listFlipbooks();
             opacity: 1;
             transform: scale(1.05);
         }
+        
+        /* STYLES PAGINATION */
+        .pagination {
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .pagination-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .pagination-btn {
+            padding: 10px 15px !important;
+            min-width: auto !important;
+            font-size: 14px !important;
+            border-radius: 6px !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .pagination-btn.active {
+            background: #478cb3 !important;
+            color: white !important;
+            border-color: #478cb3 !important;
+            font-weight: 700 !important;
+        }
+        
+        .pagination-btn.active:hover {
+            background: #3a7096 !important;
+            transform: none !important;
+        }
+        
+        .pagination-btn.disabled {
+            background: #f8f9fa !important;
+            color: #9ca3af !important;
+            border-color: #e9ecef !important;
+            cursor: not-allowed !important;
+            opacity: 0.6 !important;
+        }
+        
+        .pagination-btn.disabled:hover {
+            background: #f8f9fa !important;
+            color: #9ca3af !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        @media (max-width: 768px) {
+            .pagination-nav {
+                gap: 5px;
+            }
+            
+            .pagination-btn {
+                padding: 8px 12px !important;
+                font-size: 13px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -497,7 +563,7 @@ $flipbooks = $generator->listFlipbooks();
                     
                     <div class="form-group">
                         <label>Titre (optionnel)</label>
-                        <input type="text" name="titre" placeholder="Extraits Revue ... - Août 2025">
+                        <input type="text" name="titre" placeholder=" FlippingBook - Août 2025">
                     </div>
                 </div>
                 
@@ -505,7 +571,15 @@ $flipbooks = $generator->listFlipbooks();
             </form>
         </div>
 
-        <h3 style="margin-top: 40px; color: #2c3e50;">FlippingBooks créés (<?= count($flipbooks) ?>)</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #2c3e50;">FlippingBooks créés</h3>
+            <div style="color: #7f8c8d; font-size: 1em;">
+                <?php if ($totalFlipbooks > 0): ?>
+                    Affichage de <?= $offset + 1 ?> à <?= min($offset + $perPage, $totalFlipbooks) ?> sur <?= $totalFlipbooks ?> flipbooks
+                    (Page <?= $page ?> sur <?= $totalPages ?>)
+                <?php endif; ?>
+            </div>
+        </div>
         
         <?php if (empty($flipbooks)): ?>
             <p style="text-align: center; color: #7f8c8d; font-style: italic; padding: 40px;">Aucun FlippingBook créé pour le moment. Commencez par en créer un !</p>
@@ -550,6 +624,40 @@ $flipbooks = $generator->listFlipbooks();
                     </div>
                 <?php endforeach; ?>
             </div>
+            
+            <!-- Navigation pagination -->
+            <?php if ($totalPages > 1): ?>
+                <div class="pagination" style="margin-top: 30px; text-align: center;">
+                    <div class="pagination-nav">
+                        <!-- Bouton Précédent -->
+                        <?php if ($page > 1): ?>
+                            <a href="?page=<?= $page - 1 ?>" class="btn pagination-btn">‹ Précédent</a>
+                        <?php else: ?>
+                            <span class="btn pagination-btn disabled">‹ Précédent</span>
+                        <?php endif; ?>
+                        
+                        <!-- Numéros de page -->
+                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                            <?php if ($i == $page): ?>
+                                <span class="btn pagination-btn active"><?= $i ?></span>
+                            <?php else: ?>
+                                <a href="?page=<?= $i ?>" class="btn pagination-btn"><?= $i ?></a>
+                            <?php endif; ?>
+                        <?php endfor; ?>
+                        
+                        <!-- Bouton Suivant -->
+                        <?php if ($page < $totalPages): ?>
+                            <a href="?page=<?= $page + 1 ?>" class="btn pagination-btn">Suivant ›</a>
+                        <?php else: ?>
+                            <span class="btn pagination-btn disabled">Suivant ›</span>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div style="margin-top: 15px; color: #7f8c8d; font-size: 0.9em;">
+                        Page <?= $page ?> sur <?= $totalPages ?> | Total: <?= $totalFlipbooks ?> flipbooks
+                    </div>
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
 
         <div class="instructions">
@@ -568,6 +676,16 @@ $flipbooks = $generator->listFlipbooks();
                 <li><strong>Iframe :</strong> <code>&lt;iframe src="/revue/nom-flipbook/" width="100%" height="600px"&gt;&lt;/iframe&gt;</code></li>
                 <li><strong>URL directe :</strong> <code>votre-site.com/revue/nom-flipbook/</code></li>
             </ul>
+        </div>
+        <div style="text-align: center; margin-top: 40px;">
+            <form action="regenerate-flipbook.php" method="post" style="display: inline-block;">
+                <button type="submit" class="btn btn-primary">Régénérer template</button>
+            </form>
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+            <form action="migrate-old-revues.php" method="post" style="display: inline-block;">
+                <button type="submit" class="btn btn-upload">Migrer anciens FP</button>
+            </form>
         </div>
     </div>
     

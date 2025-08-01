@@ -1,8 +1,7 @@
 <?php
-// flipbook-template-simple.php - Template sans auto-détection
 function generateSimpleFlipbook($moisAnnee, $titre = null, $nbPages = 10) {
     if (!$titre) {
-        $titre = "Revue  - " . ucfirst(str_replace('-', ' ', $moisAnnee));
+        $titre = ucfirst(str_replace('-', ' ', $moisAnnee));
     }
     
     // Générer la liste des pages statiquement
@@ -19,9 +18,10 @@ function generateSimpleFlipbook($moisAnnee, $titre = null, $nbPages = 10) {
     <title>{$titre}</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/images/favicon.png">
     <style>
         body { margin: 0; background-color: #333; font-family: Arial, sans-serif; overflow: hidden; }
-        .flipbook { width: 100vw; height: 100vh; }
+        .flipbook { width: 100vw; height: 100vh; scale : 0.95; }
         .page-indicator { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); color: white; background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 20px; z-index: 1000; font-size: 14px; font-weight: bold; }
         .instructions { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); color: #ccc; background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 15px; z-index: 1000; font-size: 12px; text-align: center; }
         .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 18px; z-index: 2000; }
@@ -31,14 +31,17 @@ function generateSimpleFlipbook($moisAnnee, $titre = null, $nbPages = 10) {
             position: fixed;
             top: 50%;
             transform: translateY(-50%);
-            width: 80px;
-            height: 100px;
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
             cursor: pointer;
             z-index: 1000;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
         
         .nav-arrow::before {
@@ -46,7 +49,6 @@ function generateSimpleFlipbook($moisAnnee, $titre = null, $nbPages = 10) {
             width: 0;
             height: 0;
             transition: all 0.3s ease;
-            filter: drop-shadow(0 8px 15px rgba(71, 140, 179, 0.4));
         }
         
         .nav-arrow-left {
@@ -54,9 +56,10 @@ function generateSimpleFlipbook($moisAnnee, $titre = null, $nbPages = 10) {
         }
         
         .nav-arrow-left::before {
-            border-top: 50px solid transparent;
-            border-bottom: 50px solid transparent;
-            border-right: 60px solid #fcf6ef;
+            border-top: 16px solid transparent;
+            border-bottom: 16px solid transparent;
+            border-right: 22px solid #333;
+            margin-left: -7px; /* Centrage visuel */
         }
         
         .nav-arrow-right {
@@ -64,17 +67,20 @@ function generateSimpleFlipbook($moisAnnee, $titre = null, $nbPages = 10) {
         }
         
         .nav-arrow-right::before {
-            border-top: 50px solid transparent;
-            border-bottom: 50px solid transparent;
-            border-left: 60px solid #fcf6ef;
+            border-top: 16px solid transparent;
+            border-bottom: 16px solid transparent;
+            border-left: 22px solid #333;
+            margin-left: 7px; /* Centrage visuel */
         }
         
         .nav-arrow:hover {
             transform: translateY(-50%) scale(1.15);
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
         
         .nav-arrow:hover::before {
-            filter: drop-shadow(0 12px 25px rgba(255, 255, 255, 0.4));
+            filter: none;
         }
         
         .nav-arrow:active {
@@ -82,46 +88,24 @@ function generateSimpleFlipbook($moisAnnee, $titre = null, $nbPages = 10) {
         }
         
         .nav-arrow.disabled {
-            opacity: 0.3;
+            opacity: 0.4;
             cursor: not-allowed;
             pointer-events: none;
         }
         
         .nav-arrow-left:hover::before {
-            border-right-color: #fff;
-            animation: pulse-left 1.5s infinite;
-        }
-        
-        .nav-arrow-left:active::before {
-            border-right-color: #fff;
+            border-right-color: #333;
         }
         
         .nav-arrow-right:hover::before {
-            border-left-color: #fff;
-            animation: pulse-right 1.5s infinite;
-        }
-        
-        .nav-arrow-right:active::before {
-            border-left-color: #fff;
-        }
-        
-        @keyframes pulse-left {
-            0% { border-right-color: #fcf6ef; }
-            50% { border-right-color: #fff; }
-            100% { border-right-color: #fcf6ef; }
-        }
-        
-        @keyframes pulse-right {
-            0% { border-left-color: #fcf6ef; }
-            50% { border-left-color: #fff; }
-            100% { border-left-color: #fcf6ef; }
+            border-left-color: #333;
         }
         
         /* Adaptation mobile */
         @media (max-width: 768px) {
             .nav-arrow {
                 width: 50px;
-                height: 70px;
+                height: 50px;
                 top: auto;
                 bottom: 80px;
                 transform: none;
@@ -135,14 +119,14 @@ function generateSimpleFlipbook($moisAnnee, $titre = null, $nbPages = 10) {
                 transform: translateX(50%);
             }
             .nav-arrow-left::before {
-                border-top-width: 25px;
-                border-bottom-width: 25px;
-                border-right-width: 35px;
+                border-top-width: 10px;
+                border-bottom-width: 10px;
+                border-right-width: 15px;
             }
             .nav-arrow-right::before {
-                border-top-width: 25px;
-                border-bottom-width: 25px;
-                border-left-width: 35px;
+                border-top-width: 10px;
+                border-bottom-width: 10px;
+                border-left-width: 15px;
             }
             .nav-arrow:hover {
                 transform: scale(1.15);
@@ -168,7 +152,7 @@ function generateSimpleFlipbook($moisAnnee, $titre = null, $nbPages = 10) {
 <body>
     <div id="app">
         <div class="loading" v-if="!flipbookReady">Chargement de {$moisAnnee}...</div>
-        <div class="page-indicator" v-if="flipbookReady">Page {{ pageNum || 1 }} / {{ pages.length - 1 }}</div>
+        <!-- <div class="page-indicator" v-if="flipbookReady">Page {{ pageNum || 1 }} / {{ pages.length - 1 }}</div> -->
         <div class="instructions" v-if="flipbookReady">{$titre}</div>
         
         <!-- FLÈCHES DE NAVIGATION -->
